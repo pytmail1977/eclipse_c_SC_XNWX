@@ -1,0 +1,1344 @@
+	
+//应用数据清理
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E 01 02 07 00 00
+//注入文件通知
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E 01 02 09 00 00
+//预关机
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E FF 02 08 00 00
+//配置指令
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E 01 20 01 00 00
+
+修改日志：
+2017-6-3
+1.拷贝YKYC所有代码，删除YK.h和YK.cpp，将YC.h和YC.cpp并入YKYC.h和YKYC.cpp，将YKYC.h和YKYC.cpp改名为SC.h和SC.cpp
+2.替换所有CKFW为SCFW，YKYC为SC
+3.替换YYID_SCJ为YYID_SCFW
+4.在projiect-properties-C/C++Builder中添加include和lib路径及lib名mysqlclient
+5.在projiect-properties-C/C++General-indexer页面修改为enable project special setting
+6.修改onZL_JKGL_YYSJQL()，清理对象为GJFW_SCJ_SCWJ，但需要做到饿是在清理之前删除对应的文件。
+7.修改dealWithAnUnreadZl()函数，增加4个处理函数：
+
+//处理数传档位设置指令
+int onZL_SCJ_SCDWSZ((int zl_id,unsigned char* ucharZL_NR){
+	return 1;
+}
+//处理数传数据组织指令
+int onZL_SCJ_ SCSJZZ((int zl_id,unsigned char* ucharZL_NR){
+	return 1;
+}
+//处理数传开始指令
+int onZL_SCJ_SCKS((int zl_id,unsigned char* ucharZL_NR){
+	return 1;
+}
+//处理数传停止指令
+int onZL_SCJ_SCTZ((int zl_id,unsigned char* ucharZL_NR){
+	return 1;
+}
+8.删除所有多线程部分
+9.将gatherSsycData改为prepareScjDwOrder
+10.将sendSsycData改为sendScjDwOrder
+11.将netsocket_t gNetSocket改为两个变量
+	netsocket_t gNetSocketScjKz;
+	netsocket_t gNetSocketScjSj;
+12.修改connectSocket，先连控制端口再连数据端口；修改closeSocket，先断开数据端口，再断开控制端口；
+13.定义一个数传数据类型scsj_t
+14.在自我状态表里，定义一个数传状态字段SCFW_ZT_SFSC，当得到数传开始指令后置为1，收到数传停止指令后置为0；同时增加一个全局变量gIntSczt及其初始化和赋值动作。并将其纳入updateSelfState函数的处理中
+15.修改initNetsocket，将gNetSocket.client_sockfd = -1;改为pNetsocket->client_sockfd = -1;
+16.删除延时遥测数据采集代码和延时遥测配置项链表数组结构
+17.将DealWtihYSYCPZX改为DealWtihSCSJZZ
+
+
+2017-6-5
+1.在library中加入-lrt
+2.在移动硬盘上调试的时候，设置两个服务器地址，因为一台机器没办法利用调试工具开两个tcp服务
+
+3.利用地测软件灌进来一些数传指令
+	（1）档位设置的正确
+	（2）数传数据组织的，通过sql查询形成数传文件的指令，sql没进来，查找发现是自身YKYC写入指令内容时在00处作为字符串截断所以没有把完整指令写入指令表，改正后测试成功
+	（3）数传数据组织的，通过已有文件组织的，sql不对，自造指令改sql后测试成功。
+4.为加快测试，将#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc/sc_"，解决不能导出为文件的问题
+5.解决了YKYC写入指令内容时，以及SC在读取指令内容时，在00处作为字符串截断
+
+2017-6-6
+1.进行数传数据组织时，先清理数传数据表，删除任务id和指令中指定的任务id相同的记录
+2.根据新的总体设计文件修改实时遥测数据结构
+3.发现sizeof求一个结构体的大小为什么会多了两个字节，对程序中涉及到此问题的统一解决。在struct.h中前后分别加上#pragma pack(1) 和#pragma pack() 
+4.CRC是can校验，收到数传指令不做校验
+5.增加#define debugPrint infoPrint printf //主要用于临时调试 	
+
+2017-6-7
+1.改为数传完毕自动断开与服务器的链接
+2.删除无用的延时遥测量结构
+
+2017-6-9
+1.fileHead_s结构中的纳秒改为微秒
+
+2017-6-14
+1.按高航和赵岩要求更新数据库
+
+2017-6-15
+1.修改“gScSjPackage.sync = 0x1ACFFC1D;”为“gScSjPackage.sync = htonl(0x1ACFFC1D);”
+2.修改“gScSjPackage.versionAndVcduId = 0x4C41;”为“gScSjPackage.versionAndVcduId = htons(0x4C41);”
+	
+	
+2017-6-21
+1.修改输出事件为年月日加时分秒
+2.修改所有errorFprint为errorPrint
+3.修改所有的Print为fprintf
+4.定义#define LOGFILE stdout
+
+2017-6-22
+1.修改onZL_SCJ_SCKS（）
+	（1）将pScFileHead->scWjXh = intWjHx;
+	改为pScFileHead->scWjXh = htons(intWjHx);
+	（2）将pScFileHead->scFileLength = fileSize;
+	改为pScFileHead->scFileLength = htonl(fileSize);
+
+2017-7-18
+1.在const.h中增加YCYC的const.h中新增的内容
+	//////////////////////
+	//遥测包头（外部不再使用TCP应用层包头）
+	//////////////////////
+	#define LEN_OF_SSYC_SYNC 2 //实时遥测包的同步头长度
+	#define LEN_OF_SSYC_HEAD 4 //实时遥测包的包头长度
+	#define SSYC_SYNC_0 0xEB
+	#define SSYC_SYNC_1 0x90
+
+	//实时遥测数据表
+	#define table_name_YC_SSYCSJ "GJFW_YC_SSYCSJ" //
+2.在struct.h中增加YCYC的struct.h中新增的内容
+	//定义实时遥测数据头
+	typedef struct ssyc_head_s{
+		__uint8_t header[LEN_OF_SSYC_SYNC];
+		__uint8_t yyId;
+		__uint8_t length;
+	}ssyc_head_t;
+3.定义数传按需遥测结构体
+	typedef struct ssyc_sc_s{
+		__uint8_t rwId;//任务Id
+		__uint8_t scZlJs;//数传指令计数
+		__uint8_t csSl;//传输速率
+		__uint32_t wjZs;//文件总数
+		__uint16_t zzScWjXh;//正在数传文件序号
+		__uint8_t scZt;//0:无操作，1:正在进行数传准备，2:数传任务数据准备完毕，3:当前正在进行数传
+		__uint8_t scLjZt;//数传连接的状态
+		//李丹定义的其余2个遥测量，含义待明确
+		//__uint8_t scZzSjCrSjk;//数传组织数据插入数据库
+		//__uint8_t scWjSc;//数传文件生成
+	}scsj_sc_t;
+4.定义数传遥测结构，并在init（）中增加其初始化语句
+	//数传按需遥测结构
+	scsj_sc_t gScYcData;
+5.修改原有数传状态变量gIntSczt的赋值，按照0:无操作，1:正在进行数传准备，2:数传任务数据准备完毕，3:当前正在进行数传
+
+2017-7-20
+1.修改变量名//指令计数
+		__uint8_t gSjZlCount;
+	为
+		__uint8_t gScZlCount;
+		
+2.在函数dealWithAnUnreadZl（）中
+   //读取第一条指令
+   MYSQL_ROW mysql_row=self_mysql_fetch_row(mysql_result);
+   之后增加对数传指令计数的自增操作
+   
+3.修改现有程序中涉及状态量变化的地方，增加对数传遥测数据结构内部字段的修改。例如init（）中的gIntSczt = 0;后面
+		增加
+			//修改数传实时遥测量
+			gScYcData.scZt = gIntSczt;
+		在onZL_SCJ_SCDWSZ（）、onZL_SCJ_SCKS（），onZL_SCJ_SCTZ（）三个函数中，调用connectSocket（）／closeSocket（）之后，增加修改数传实时遥测量的操作
+			gScYcData.scLjZt = 1／0;
+			
+4.在SC.CPP的ret = DealWtihSczzFromSql(&gScSjZzZl);之后增加
+		//修改数传实时遥测量
+		gScYcData.wjZs = 1;
+5.修改DealWtihSczzFromExistFiles（）函数，当返回值不小于0时，表示组织的数传文件个数
+	在执行组织sql后，将self_mysql_affected_rows(&gMysql)作为组织产生的文件个数，赋给gScYcData.wjZs
+6.修改onZL_SCJ_SCKS（），在组成数传帧并发送之前修改数传实时遥测量
+       gScYcData.zzScWjXh = intWjHx;
+7.增加函数void insertScSsYcSj(void)，向实时遥测数据表插入数传实时遥测数据
+8.在SC.cpp内调用insertScSsYcSj（）向实时遥测数据表插入记录。时机为：init()完成之后，quit完成之前，每个指令处理之后，以及SCKS指令中，数传文件序号发生变化时。
+9.由于macbook上无法开两个调试助手，所以调试数传需要连接。31上的调试助手，因此修改const.h文件，将服务器地址修改为192.168.1.31
+
+2017-7-21
+1.修改insertScSsYcSj（），向实时遥测数据表插入记录时，将int2String(len)改为int2String(sizeofgScYcData)，读取的时候仍按结构体大小读取
+2.将#define SQL_OUTFILE_MAXSIZE 102400 //最大100KB改为
+	#define SQL_OUTFILE_MAXSIZE 1024000 //最大1000KB
+2017-7-25
+1.将#define SQL_OUTFILE_MAXSIZE 1024000 //最大1000KB改为
+	#define SQL_OUTFILE_MAXSIZE 102400000 //最大100MB
+2.修改onZL_SCJ_SCKS（）
+	将
+		        	 char  fileBuffer[SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH+SC_FILE_HEAD_LENGTH];
+	        	 bzero(fileBuffer,SQL_OUTFILE_MAXSIZE+SC_FILE_HEAD_LENGTH);
+	改为
+	 	        	 char  fileBuffer[SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH+SC_FILE_HEAD_LENGTH];
+	        	 bzero(fileBuffer,SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH+SC_FILE_HEAD_LENGTH);     
+3.修改onZL_SCJ_SCKS（），如果要数传的文件大小超过(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)就退出，否则数组会溢出
+	        	 //如果要数传的文件大小超过(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)就退出，否则数组会溢出
+	        	 if(fileSize > (SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)){
+
+	        		 //要读出的文件长度大于SQL_OUTFILE_MAXSIZE，返回-3
+	        		 //关闭文件
+	        		 in.close();
+	        		 //释放此次查询记录
+	        		 self_mysql_free_result(mysql_result);
+	        		 msgPrint(LOGFILE, "MSG---FileSize（%d)>(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)（%d)\n",fileSize,(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH));
+	            	 return_ZL_ZXJG(zl_id,ZXJG_SB);
+	            	 return -4;
+	        	 }
+4.修改dealWithAnUnreadZl（）,将
+	string sqlSelectZL = "select * from "+
+	string sqlSelectZL = "select ZL_ID,YY_ID,ZL_LX,ZL_BH,ZL_NR from "+
+	同步修改ZL_NR对应的rowid为4
+5.遇到问题SQL_OUTFILE_MAXSIZE超过1024000时（或者10M，或者100M）,程序在读取到数传开始指令，执行到onZL_SCJ_SCKS(intZL_ID,&ucharZL_NR);时就发生段错误退出。
+	将使用SQL_OUTFILE_MAXSIZE定义的两个局部变量
+		char  gFileBufferForIn[SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH+SC_FILE_HEAD_LENGTH];（onZL_SCJ_SCKS函数中）
+		char  gFileBufferForAddHead[SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH];（addHeadtoFile函数中）
+	改为全局变量
+
+6.修改addHeadtoFile()，如果要加头的文件大小超过SQL_OUTFILE_MAXSIZE就退出，否则数组会溢出
+	 //如果要加头的文件大小超过SQL_OUTFILE_MAXSIZE就退出，否则数组会溢出
+	 if(fileSize > SQL_OUTFILE_MAXSIZE){
+
+		 //要读出的文件长度大于SQL_OUTFILE_MAXSIZE，返回-3
+		 //关闭文件
+		 in.close();
+		 msgPrint(LOGFILE, "MSG---Fail to add head to file, fileSize（%d)>SQL_OUTFILE_MAXSIZE（%d)\n",fileSize,SQL_OUTFILE_MAXSIZE);
+		 return -1;
+	 }
+
+2017-7-28
+1.与李丹统一数传组织文件格式，第一行输出sql语句
+（1）修改
+		int addHeadtoFile(const char * fileName)
+	为
+		int addHeadtoFile(const char * fileName,const char * sql)
+（2）修改
+		int retAdd = addHeadtoFile(fileName);
+	为
+		int retAdd = addHeadtoFile(fileName,charSczzSql);
+
+【备份】SC_local_20170728_2.tar.gz		
+【备份】workspace_mb_20170728_3.tar.gz
+
+2017-7-9
+1.修改一处错误
+	将onZL_SCJ_SCKS（）中的
+		pScFileHead->scFileLength = htonl(fileSize);
+	改为
+	        	 //填写数传文件长度
+	        	 if(fileSize > beginIndex){
+	        		 pScFileHead->scFileLength = htonl(fileSize-beginIndex);
+	        	 }else
+	        	 {
+	            	 //指定的偏移量超出文件长度
+	            	 return_ZL_ZXJG(zl_id,ZXJG_SB);
+	            	 return -5;
+	        	 }
+	        	
+2017-7-10
+1.修改一处命名不当
+	将
+		intWjHx
+	改为
+		intWjXh	        	
+2.修改sendScjWjSj（）
+	将
+		返回值由Void
+	改为
+		成功发送的数据量
+	将
+		length = send(gNetSocketScjSj.client_sockfd,socketWriteBuffer,sjSjDataLength,MSG_NOWAIT);
+	改为
+		length = send(gNetSocketScjSj.client_sockfd,socketWriteBuffer,sjSjDataLength,MSG_WAITALL);
+		
+3.修改onZL_SCJ_SCKS()增加数传过程中的计数输出，且在调用sendScjWjSj（）而未能发送一个整帧的情况下，报错结束数传。
+	增加
+		int dataLengthToSend = 0;
+		dataLengthToSend = SCSJ_PACKAGE_DATA_SIZE;
+		dataLengthToSend = sendSize-index;
+	记录每次数传所实际发出的有效数据长度，如果成功发送一个数传帧，就将此长度作为成功发送的有效数据长度
+	将
+		#ifdef	_CONNECT_TO_SERVER
+		             //在数传机上发送
+					 sendScjWjSj();
+
+		#endif	
+	修改为
+		#ifdef	_CONNECT_TO_SERVER
+		             //在数传机上发送
+	        		 int onceSent = sendScjWjSj();
+	        		 //如果未能成功发送一个完成的数传帧，就报错结束数传
+	        		 if (onceSent != sizeof(scsj_t)){
+	        			 //报错
+	        			 errorPrint(LOGFILE,  "ERR---Send SC Frame fail, only %d Byte were sent（%d Byte should be sent. SC will be terminated!\n",onceSent,sizeof(scsj_t));
+
+	        			 //////////////////////////////
+	        			 //善后处理
+	        			 //////////////////////////////
+
+
+	        			 //释放此次查询记录
+	        	         self_mysql_free_result(mysql_result);
+
+	        	         //反馈执行结果
+	        	         return_ZL_ZXJG(zl_id,ZXJG_SB);
+
+	        	     	//传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
+	        	     	if(closeSocket()){
+	        	     		gIntSczt = 0; //数传状态置为0
+	        	     		//修改数传实时遥测量
+	        	     		gScYcData.scLjZt = 0;
+
+	        	          	//数传完成时，插入实时遥测数据表
+	        	          	insertScSsYcSj();
+	        	     	}
+
+	        	         //发送数传帧失败，没有成功发送整帧
+	        	         return -6;
+	        		 }
+
+	        		 //记录成功发送总数
+	        		 sent = sent + dataLengthToSend;
+
+	        		 //输出数传计数
+		        	 dataPrint(LOGFILE, "DAT---SC Send %d Byte to socket (%d sent, %d remain)\n",dataLengthToSend,sent,sendSize-sent);
+
+		#endif
+		        	 
+4.修改onZL_SCJ_SCKS()，在所有return之前，都增加断开socket链接的操作。
+	传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
+
+2017-7-10
+1.修改addHeadtoFile（），在数传组织文件的第一行输出sql语句
+（1）在
+		pFileHead->fileType = 0xFF; //暂无合适的类型
+	后，增加
+	    ////////////////////////////////
+    	//将sql语句写入文件正文部分
+   		////////////////////////////////
+
+		//取sql语句长度
+   		 string strSql = string(sql);
+		int lenOfSql = strSql.length();
+
+		//将sql语句写入文件
+		copyUCharArray((__uint8_t*)sql,(__uint8_t*)(gFileBufferForAddHead+SQL_OUTFILE_HEAD_LENGTH),lenOfSql);
+		//写入回车
+		gFileBufferForAddHead[SQL_OUTFILE_HEAD_LENGTH+lenOfSql] = '\n';
+
+		//计算已经被sql语句占用的空间
+		int lenOfSqlAndReturn = lenOfSql+1;
+（2）将
+	 	//如果要加头的文件大小超过SQL_OUTFILE_MAXSIZE就退出，否则数组会溢出
+	 	if(fileSize > SQL_OUTFILE_MAXSIZE){
+	 改为
+	 	 //如果要加头的文件大小超过SQL_OUTFILE_MAXSIZE就退出，否则数组会溢出
+		 if(fileSize+lenOfSqlAndReturn > SQL_OUTFILE_MAXSIZE){		
+（3）将
+	    //文件长度
+    	pFileHead->fileSize = fileSize;
+    改为
+    	//文件长度
+    	pFileHead->fileSize = fileSize+lenOfSqlAndReturn;
+ （4）将
+ 	 	in.read (gFileBufferForAddHead+SQL_OUTFILE_HEAD_LENGTH, fileSize);
+ 	 改为
+ 	 	in.read (gFileBufferForAddHead+SQL_OUTFILE_HEAD_LENGTH+lenOfSqlAndReturn, fileSize);
+ （5）将
+ 		__uint16_t checksum = checkSum16((__uint16_t *) gFileBufferForAddHead, fileSize+SQL_OUTFILE_HEAD_LENGTH);
+ 	 改为
+ 		__uint16_t checksum = checkSum16((__uint16_t *) gFileBufferForAddHead, fileSize+SQL_OUTFILE_HEAD_LENGTH+lenOfSqlAndReturn);
+ （6）将
+ 		out.write(gFileBufferForAddHead, fileSize+SQL_OUTFILE_HEAD_LENGTH);
+ 	 改为
+    	out.write(gFileBufferForAddHead, fileSize+SQL_OUTFILE_HEAD_LENGTH+lenOfSqlAndReturn);
+    	
+【备份】workspace_mb_20170810_1.tar.gz
+2017-8-10
+2.增加一个数据库链接，给子线程使用
+(1)修改global.h和global.cpp
+	将
+		mysql_t gMysql;
+	改为
+		mysql_t gMysql[2];//每个线程一个数据库链接
+（2）修改init（）
+	将
+		initMysql(&gMysql);
+	改为
+		initMysql(&gMysql[0]);
+		initMysql(&gMysql[1]);
+（3）修改
+	将
+		destroyMysql(&gMysql);
+	修改为
+		destroyMysql(&gMysql[0]);
+		destroyMysql(&gMysql[1]);
+（4）修改commonTool.cpp
+		将
+			void closeDB(void);
+		改为
+			void closeDB(mysql_t *Mysql);
+		将
+			int connectDB(void);
+		改为
+			int connectDB(mysql_t *Mysql);
+（5）修改init()
+	将
+		////////////////////////////////
+		//链接数据库，如果失败就返回-1
+		///////////////////////////////
+		if (0>=connectDB()){
+			return -1; //-1表示无法链接到数据库
+		}
+	改为
+		////////////////////////////////
+		//链接数据库，如果失败就返回-1
+		///////////////////////////////
+		if (0>=connectDB(&gMysql[0])){
+			return -1; //-1表示无法链接到数据库
+		}else if (0>=connectDB(&gMysql[1])){
+			closeDB(&gMysql[0]);
+			return -1;
+		}		
+		gIntIsDbConnected = 1;
+（6）修改quit（）
+	将
+		//关闭数据库
+		closeDB();
+	改为
+		//关闭数据库
+		closeDB(&gMysql[0]);
+		closeDB(&gMysql[1]);
+		gIntIsDbConnected = 0;			
+（7）修改commonTool.cpp
+	将
+		//封装mysql_num_rows
+		my_ulonglong STDCALL self_mysql_num_rows(MYSQL_RES *res);
+		//封装mysql_free_result
+		void		STDCALL self_mysql_free_result(MYSQL_RES *result);
+		//封装mysql_fetch_row
+		MYSQL_ROW	STDCALL self_mysql_fetch_row(MYSQL_RES *result);
+	改为
+		//封装mysql_num_rows
+		my_ulonglong STDCALL self_mysql_num_rows(mysql_t *pMYsql,MYSQL_RES *res);
+		//封装mysql_free_result
+		void		STDCALL self_mysql_free_result(mysql_t *pMYsql,MYSQL_RES *result);
+		//封装mysql_fetch_row
+		MYSQL_ROW	STDCALL self_mysql_fetch_row(mysql_t *pMYsql,MYSQL_RES *result);
+（8）将SC.cpp
+		中的
+			gMysql
+		替换为
+			gMysql[0]
+
+3.将onZL_SCJ_SCKS（）重新命名为void* execSC(void *arg)作为子线程调用入口
+（1）定义两个局部变量，从arg获取。
+		//获得入口参数
+		int zl_id;
+		unsigned char* ucharZL_NR;
+（2）定义一个参数类型
+		typedef struct 	arg_s{
+			int zl_id;
+			unsigned char* ucharZL_NR;
+		}arg_t;
+（3）获得入口参数
+		//获得入口参数
+	arg_t *argTmp =(arg_t*)arg;
+	int zl_id = argTmp->zl_id;
+	unsigned char* ucharZL_NR = argTmp->ucharZL_NR;		
+
+
+20170811
+1.定义一组execSC()返回值常量
+	//////////////////////
+	//execSC()返回值
+	//////////////////////
+	#define RET_SC_SUCCESS 1 //表示数传成功
+	#define RET_GET_O_FILE_TO_SC 0 //表示从数传表中查到0个可供数传的文件
+	#define RET_CANNOT_CONNECT_TO_SCJFW -1 //表示无法链接到指令转发服务；
+	#define RET_QUERY_RESULT_IS_NULL_ -2//查询取到的结果集指针为NULL；
+	#define RET_SELECT_SCJ_SCWJ_FAIL -3//查询满足条件的数传文件失败;
+	#define RET_SCWJ_IS_TOO_LARGE -4//要读出的文件长度大于SQL_OUTFILE_MAXSIZE;
+	#define RET_GIVEN_OFFSET_OVERSTEP_LENGTH_OF_FILE -5//指定的偏移量超出文件长度
+	#define RET_FAIL_TO_SEND_SC_FRAME -6//发送数传帧失败，没有成功发送整帧	
+	#define RET_ANOTHER_SC_IS_GOING -7//当前正在数传，无法处理其他数传开始指令
+	#define RET_OTHER_MISTAKE -999//其他错误
+	
+2.修改SC.cpp，增加一个函数threadReturn，用于execSC()
+	//从子线程返回
+	void threadReturn(int arg){
+		int *pRet =  (int*)malloc(sizeof(int));
+		*pRet = arg;
+		prgPrint(LOGFILE,"PRG-SC-subthread is going to be closed.\n");
+	
+		pthread_exit((void*)pRet);
+	}	
+2.利用1、2定义的常量的函数替换execSC()中的return
+3.写一个新的onZL_SCJ_SCKS（）
+	int onZL_SCJ_SCKS(int zl_id,unsigned char* ucharZL_NR){
+
+		GET_FUNCSEQ
+		fucPrint(LOGFILE, "FUC+++SC.cpp FUNC: onZL_SCJ_SCKS is called.\n");
+
+		// 创建遥控线程//////////////////
+		pthread_t gTid;
+
+		arg_t argTmp;
+		argTmp.zl_id = zl_id;
+		argTmp.ucharZL_NR = ucharZL_NR;
+
+		int ret = pthread_create(&gTid, NULL, execSC, &argTmp);
+		if ( 0 != ret )
+		{
+	    	msgPrint(LOGFILE,"MSG---Can't create sub thread execSC: %s\n", strerror(ret));
+	    	return -1;//表示启动子线程失败
+		}
+
+    	prgPrint(LOGFILE,"PRG---onZL_SCJ_SCKS Waiting for subThreads execSC return.\n");
+
+		int *retThread;
+    	pthread_join(gTid,(void**)(&retThread));
+    	int intRetThread = *retThread;
+	    free(retThread);
+
+    	prgPrint(LOGFILE,"PRG---SubThread execSC return: %d\n", intRetThread);
+	
+		return intRetThread;
+	
+	}
+4.修改execSC()
+	将
+		gMysql[0]
+	改为
+		gMysql[1]
+		
+5.将以下语句
+	//接收指令
+	return_ZL_ZXJG(zl_id,ZXJG_JS);
+	从execSC（），挪到onZL_SCJ_SCKS（）中，避免重复执行同一个指令。（当主线程扫描指令表时，会知道这不是一条未执行的新指令）。
+6.在struct中增加一个结构定义
+	//统计信息
+	typedef struct total_s{
+		//（主线程）pt
+		pthread_t MainPt;
+		//子线程pt
+		pthread_t SubPt;
+	}total_t;
+7.增加一个全局变量
+	///////////////////////////////////
+	//统计信息
+	//////////////////////////////////
+	extern total_t gTotal;
+8.修改init（）增加对全局变量的初始化
+	////////////////////////////////
+	//统计信息初始化
+	///////////////////////////////
+	bzero(&gTotal,sizeof(total_t));
+9.修改main（），记录主线程的线程号
+	//记录主线程pt
+	gTotal.MainPt = pthread_self();
+10.修改，在进入时，记录子线程的线程号
+	gTotal.SubPt = pthread_self();
+11.修改threadReturn（），在退出前，清理子线程的线程号
+	gTotal.SubPt = 0;
+12.修改init（），将下列语句
+		////////////////////////////////
+		//初始化完成后，插入实时遥测数据表
+		////////////////////////////////
+		insertScSsYcSj();
+	从init()中，挪到main（），调用
+		//记录主线程pt
+		gTotal.MainPt = pthread_self();
+	之后
+	
+13.在commonTool.c中增加一个函数
+	//根据调用此函数所在的线程，返回适当的数据库链接
+	mysql_t * getMysql(void){
+		GET_FUNCSEQ
+		fucPrint(LOGFILE,"FUC++++++commonTool.c FUNC: getMysql is called.\n");
+
+		pthread_t pt = pthread_self();
+		if (pt == gTotal.MainPt){
+			return &gMysql[0];
+		}else if (pt == gTotal.SubPt){
+			return &gMysql[1];
+		}else{
+			return NULL;
+		}
+	}
+	
+14.修改SC.cpp
+	在所有使用数据库链接的地方，
+	使用函数局部变量（类似如下形式）
+		//取得本线程对应的数据库链接
+		mysql_t * selfMysqlp = NULL;
+		selfMysqlp = getMysql();
+		if (NULL == selfMysqlp){
+			errorPrint(LOGFILE,"ERR-C-Can not get mysql connection for this thread!\n");
+			return -1;
+		}
+	注意在execSC（）中，应在以下语句之后增加上述内容
+		//在进入时，记录子线程的线程号，在退出时，清理子线程的线程号
+		gTotal.SubPt = pthread_self();
+	且将
+		return -1;
+	改为
+		threadReturn(RET_OTHER_MISTAKE);
+	并用
+		selfMysqlp
+	替换
+		&gMysql[0]
+	将
+		selfMysqlp.mysql
+	替换为
+		&selfMysqlp->mysql	
+15.修改onZL_SCJ_SCKS（）
+	在开始处判断当前是否正在数传，如果当前正在数传则不处理新的数传指令
+		//如果当前正在数传则不处理新的数传指令
+		if(3 == gScYcData.scZt)
+			return RET_ANOTHER_SC_IS_GOING;		
+16.修改threadReturn（）
+	在退出前，修改gScYcData.scZt为0（0:无操作，1:正在进行数传准备，2:数传任务数据准备完毕，3:当前正在进行数传）
+17.修改const.h，增加
+	//////////////////////
+	//数传状态
+	//////////////////////
+	#define SCZT_IDLE 0 //0:无操作
+	#define SCZT_PREPARING 1//1:正在进行数传准备
+	#define SCZT_PREPARED 2//2:数传任务数据准备完毕
+	#define SCZT_SCING 3//3:当前正在进行数传
+
+【备份】workspace_mb_20170811.tar.gz
+
+20170821
+1.修改
+	将
+		while((mysql_row = self_mysql_fetch_row(&gMysql[1],mysql_result))){
+	改为
+		while((SCZT_SCING == gScYcData.scZt) && (mysql_row = self_mysql_fetch_row(&gMysql[1],mysql_result))){
+	将
+		 while (index < sendSize){
+	改为
+		 while ((SCZT_SCING == gScYcData.scZt)&&(index < sendSize)){
+
+20170822
+1.为使数据库操作返回的输出更为明确
+	将所有的
+		“, affact %d rows” 
+	改为
+		“, affact %d rows"	
+
+2.修改createSelfUsedTables
+	将最后调用的
+		updateSelfState(true);
+	删除
+		updateSelfState(true);
+3.修改main
+	在调用
+		createSelfUsedTables
+	之后增加
+		updateSelfState(true);
+		
+【备份】	workspace_mb_20170822.tar.gz
+
+20170823
+1.修改SC.cpp
+  将
+	msgPrint(LOGFILE, "MSG
+  部分修改为
+  	prgPrint(LOGFILE, "PRG
+  部分修改为
+  	errorPrint(LOGFILE, "ERR
+ 2.修改SC.cpp，除初始化和退出部分外
+ 	用
+		selfMysqlp
+	替换
+		&gMysql[1]	
+3.修改一处命名不当
+	将
+		gFileBufferForIn
+	改为
+		gFileBufferForSC
+4.改
+	arg_t  argTmp;
+	argTmp.zl_id = zl_id;
+	argTmp.ucharZL_NR = ucharZL_NR;
+  为
+	arg_t * argTmp = new(arg_t);
+	argTmp->zl_id = zl_id;
+	argTmp->ucharZL_NR = ucharZL_NR;
+  改
+    int ret = pthread_create(&gTid, NULL, execSC, &argTmp);
+  为
+  	int ret = pthread_create(&gTid, NULL, execSC, argTmp);
+  	
+20170824
+1.修改execSC（）
+	将
+		unsigned char* ucharZL_NR = argTmp->ucharZL_NR;
+	改为
+		unsigned char ucharZL_NR[ZL_MAX_LENGTH];
+		int i;
+		for (i=0;i<ZL_MAX_LENGTH;i++){
+			ucharZL_NR[i] = *(argTmp->ucharZL_NR+i);
+		}
+2.修改execSC（）
+	增加
+		//释放传入的指针
+		delete(argTmp);	
+3.修改onZL_SCJ_SCKS（）
+	在
+		int ret = pthread_create(&gTid, NULL, execSC, argTmp);
+	改为
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
+		int ret = pthread_create(&gTid, &attr, execSC, argTmp);
+4.因为没有主进程等待子进程返回，所以修改threadReturn（）
+	将
+		void threadReturn(int arg){
+			GET_FUNCSEQ
+			fucPrint(LOGFILE, "FUC+++SC.cpp FUNC: threadReturn is called.\n");
+
+			int *pRet =  (int*)malloc(sizeof(int));
+			*pRet = arg;
+			msgPrint(LOGFILE,"MSG-S-subthread is going to be closed.\n");
+
+			//在退出前，清理子线程的线程号
+			gTotal.SubPt = 0;
+			//修改数传状态为空闲
+			gScYcData.scZt = 0;
+
+			pthread_exit((void*)pRet);
+		}	
+	改为
+		void threadReturn(int arg){
+			GET_FUNCSEQ
+			fucPrint(LOGFILE, "FUC+++SC.cpp FUNC: threadReturn is called.\n");
+
+
+			msgPrint(LOGFILE,"MSG-S-subthread is going to be closed.\n");
+
+			//在退出前，清理子线程的线程号
+			gTotal.SubPt = 0;
+			//修改数传状态为空闲
+			gScYcData.scZt = 0;
+			
+			pthread_exit(NULL);
+		}
+		
+5.问题：将 20170823-4改回去，也可以正常运行，说明23号调试中栈空间有问题
+
+todo
+#1.增加保护，目前收到错误指令，就会崩溃。(之后再未发现，2017-7-18）
+2.对数传组织的文件进行压缩
+#3.服务器链接不正常断开时，链接维护可能还有问题（不正常断开没有可靠解决方法）
+#4.修改自用状态表，组织4字节遥测量，以便遥测查询（不需要再做此工作，改为按需遥测）
+#5.数传速率是否应该限制，以免发送失败（done，改用阻塞发，保证每次发送一个整帧）
+#6.与李丹统一数传组织文件格式，第一行输出sql语句（done）
+#7.改成多线程，才能在数传过程中中止（完成，
+	收到终止指令时有动作
+		gScYcData.scZt = SCZT_IDLE;
+	execSC在执行中两处while循环判断当前状态，如果(SCZT_SCING == gScYcData.scZt)表示在进行数传才继续循环，否则退出循环
+#8.调用threadReturn，而不free回导致内存泄漏（在threadReturn中不再new分配堆空间）
+#9.子线程和主线程的关系（done，主线程不等待子线程，也不读取子线程的返回值）
+
+
+////////////////////////////////
+//mac调试方法
+////////////////////////////////
+1.修改配置
+包含文件：
+	//#include <malloc.h>
+	#include <sys/malloc.h>
+mysql库的位置：
+	/usr/local/Cellar/mysql/5.7.18_1/include/mysql
+	/usr/local/Cellar/mysql/5.7.18_1/lib
+库：
+	mysqlclient	
+	rt（不要）
+
+2.启动网络调试助手app
+3.从调试机导出数据库
+	mysqldump -uroot -p node > filename
+4.导入本地数据库
+	mysql -uroot -p
+	use node;
+	source filename;
+5.从赵岩拷来照片文件，在／下建立目录images，拷贝照片文件目录到images下
+6.修改数据库GJFW_LRXJ_ZP表的文件路径字段，去除路径的前导部分／home／softsat3
+	update GJFW_LRXJ_ZP set ZPWJ_LJ =  substring(ZPWJ_LJ,15,CHAR_LENGTH(ZPWJ_LJ)) where 1=1;
+
+
+///////////////////////////////////
+移动硬盘调试方法 pc
+///////////////////////////////////
+1.修改配置
+包含文件：
+	#include <malloc.h>
+	//#include <sys/malloc.h>
+mysql库的位置：
+	/home/pyt64/mysql-connector-c-6.1.5-src/libmysql
+	/home/pyt64/mysql-connector-c-6.1.5-src/include
+库：
+	mysqlclient
+	rt（必须要）
+	
+2.启动调试TCP服务器，在127.0.0.1：8001端口监听
+	cd /opt/mNetAssist/mNetAssist
+	./mNetAssist
+	
+3.配置mysql的secure-file-priv	
+	pyt64@pyt64-Ubuntu:/etc$ sudo gedit mysql/my.cnf	
+		在[mysqld]下加入一行
+			secure-file-priv = /sqlexport/
+		注释掉
+			key_buffer		= 16M
+	复制到/etc下
+		pyt64@pyt64-Ubuntu:/etc$ sudo cp  mysql/my.cnf ../
+	
+	
+///////////////////////////////////
+移动硬盘交叉编译方法 arm
+///////////////////////////////////
+包含文件：
+	#include <malloc.h>
+	//#include <sys/malloc.h>
+mysql库的位置：
+	/home/pyt64/mysql-build/libmysqlclient-deb/lib/arm-linux-gnueabi
+	/home/pyt64/mysql-build/libmysqlclient-deb/include/mysql
+工具链：
+	Linker
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-g++
+	AS
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-as
+	GCC
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-gcc
+	G++
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-g++
+库：
+	mysqlclient
+	rt (必须有)
+	pthread (必须有)
+	z (必须有)
+	
+
+///////////////////////////////////
+移动硬盘arm调试方法
+///////////////////////////////////
+//PC端
+1.telnet 192.168.0.4
+2.拷贝 ～/workspace/YKYC/ARM下的可执行文件到 ~/rootnfs
+3.启动调试助手，在192.168.0.30：8001端口上监听
+	cd /opt/mNetAssist/mNetAssist
+	./mNetAssist
+	127.0.0.1：8001端口监听
+4.启动数据库服务
+
+//ARM端
+1.修改ip地址
+telnet 192.168.0.4
+vi /root/.bashprofile	改为192.168.1.4
+
+2.开启网络文件服务
+	mount -t nfs -o nolock 192.168.1.30:/home/pyt64/rootnfs /mnt/nfs
+	
+3.运行YKYC
+	/mnt/nfs # ./SC
+	
+
+//////////////////////
+//数传调试指令(用mac上的调试工具收，字节数不够)
+//////////////////////
+1.档位设置指令（03档）
+ 	aa fe 55 fe 00 fe ff 53 44 53 00 00 00 06 00 00 00 00 00 2c 1e 05 05 01 00 03
+2.数传数据组织指令（组织类别01， 任务类别02，组织select：select ZPWJ_LJ from GJFW_LRXJ_ZP where XJZT_ID = 167;
+	aa fe 55 fe 00 fe ff 53 44 53 00 00 01 e7 00 00 00 00 10 c4 1e 05 05 02 00 02 01 73 65 6c 65 63 74 20 5a 50 57 4a 5f 4c 4a 20 66 72 6f 6d 20 47 4a 46 57 5f 4c 52 58 4a 5f 5a 50 20 77 68 65 72 65 20 58 4a 5a 54 5f 49 44 20 3d 20 31 36 37 3b 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+3.数传开始指令（任务02，开始文件序号01，偏移量0）
+ 	aa fe 55 fe 00 fe ff 53 44 53 00 00 00 13 00 00 00 00 00 2e 1e 05 05 03 00 02 00 01 00 00 00 00 00 00 00 00 00 00 00
+4.数传停止指令
+ 	aa fe 55 fe 00 fe ff 53 44 53 00 00 00 06 00 00 00 00 00 2c 1e 05 05 04 00 00
+
+//////////////////////
+//数传数据准备，用sql生成文件，检查mysql是否支持 select into outputfile 操作
+//////////////////////
+select * from GJFW_YK_ZL INTO OUTFILE "/sqlexport/sc_2_1" FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n';
+
+*************************************************
+20171226
+1.
+#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
+->
+#define SJZZ_OUTFILE_NAME_BASE "/home/sqlexport/sc_"
+2.
+void insertScSsYcSj(void);
+->
+void insertScSsYcSjInStruct(void);
+3. add
+//向实时遥测数据表插入数传实时遥测数据 in string
+void insertSsYcSjInString(void);
+4.send AXYC every 5s
+void onMainTimer(int)
+{
+	GET_FUNCSEQ
+	fucPrint(LOGFILE, "FUC+++SC.cpp FUNC: onMainTimer is called.\n");
+
+	gBaseTimerCount++;
+
+	//send AXYC every 5s
+	if(gBaseTimerCount%SEND_AXYC_INTERVAL == 1){
+		insertSsYcSjInString();
+	}
+5.
+//interval of send axyc
+#define SEND_AXYC_INTERVAL (5*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //5s执行一次指令
+
+20171227
+1.SC add ssyc frame count
+     	//set to 0 while receive a zl
+     	gScYcData.sczjs = 0;
+     	
+     	//set to 0 while execSC
+     	gScYcData.sczjs = 0;
+     	
+     	//set 0 while SCKS
+		gScYcData.sczjs=0;
+
+	        		 //add while sent a frame
+	        		 gScYcData.sczjs++;
+	        		 
+20171228
+1.
+         //帧序号改为全排序
+    	 	 __uint32_t xh = 0;
+->
+         //帧序号改为全排序
+    	 	 __uint32_t xh = -1;
+    	 	 
+20180108
+1.
+//如果定义，则发送struct周期遥测
+//#define _USE_SSYC_IN_STRUCT
+
+2.
+void insertSsYcSj(void){
+	GET_FUNCSEQ
+	fucPrint(LOGFILE, "FUC++++++YK.c FUNC: insertSsYcSj is called.\n");
+#ifdef _USE_SSYC_IN_STRUCT
+	insertSsYcSjInStruct();
+#else
+	insertSsYcSjInString();
+#endif
+}
+
+20180109
+1.
+because
+(2018-01-09, 15:53:34) ERR---OUTFILES of SCFW can't not be removed all!
+so delete db recorder in GJFW_SCJ_SCWJ whether corrisponding files are removed successed or not.
+
+    int res = remove(fileName);
+    if(0==res){
+    	prgPrint(LOGFILE, "PRG---OUTFILES of SCFW are all removed!\n");
+    }else{
+    	errorPrint(LOGFILE, "ERR---OUTFILES of SCFW can't not be removed all!\n");
+    	//(2018-01-09, 15:53:34) ERR---OUTFILES of SCFW can't not be removed all!
+    	//so delete db recorder in GJFW_SCJ_SCWJ whether corrisponding files are removed successed or not.
+    	//return_ZL_ZXJG(zl_id,ZXJG_SB);
+    	//return -2;
+    }
+
+
+		
+
+20180110
+1.add fan kui in onZL_SCJ_SCKS()
+	if ( 0 != ret )
+	{
+	    prgPrint(LOGFILE,"PRG---Can't create sub thread execSC: %s\n", strerror(ret));
+
+	    return -1;//表示启动子线程失败
+	}
+
+	msgPrint(LOGFILE,"MSG---onZL_SCJ_SCKS Waiting for subThreads execSC return.\n");
+
+
+	/*
+	int *retThread;
+    pthread_join(gTid,(void**)(&retThread));
+    int intRetThread = *retThread;
+    free(retThread);
+
+    msgPrint(LOGFILE,"MSG---SubThread execSC return: %d\n", intRetThread);
+
+	return intRetThread;
+*/
+
+	return 1;
+
+}
+
+->
+	if ( 0 != ret )
+	{
+	    prgPrint(LOGFILE,"PRG---Can't create sub thread execSC: %s\n", strerror(ret));
+		return_ZL_ZXJG(zl_id,ZXJG_SB);
+	    return -1;//表示启动子线程失败
+	}
+
+	msgPrint(LOGFILE,"MSG---onZL_SCJ_SCKS Waiting for subThreads execSC return.\n");
+
+
+	/*
+	int *retThread;
+    pthread_join(gTid,(void**)(&retThread));
+    int intRetThread = *retThread;
+    free(retThread);
+
+    msgPrint(LOGFILE,"MSG---SubThread execSC return: %d\n", intRetThread);
+
+	return intRetThread;
+*/
+	return_ZL_ZXJG(zl_id,ZXJG_CG);
+	return 1;
+
+}
+
+
+2.
+         int num_row = 0;
+         //如果取到结果集就取行数
+         if (NULL != mysql_result){
+             num_row = self_mysql_num_rows(selfMysqlp,mysql_result);
+
+             //20180110
+             gScYcData.wjZs=num_row;
+
+3.
+	//取任务id
+	__uint8_t scRwId = ucharZL_NR[0];
+
+	//20180110
+	 gScYcData.rwId = scRwId;
+
+
+20180111
+1.
+		//修改数传实时遥测量
+		gScYcData.wjZs = intWjCount;
+->
+		//修改数传实时遥测量
+		gScYcData.wjZs = htonl(intWjCount);		
+		
+2.
+        		 //修改数传实时遥测量
+        		 gScYcData.zzScWjXh = intWjXh;
+->
+        		 //修改数传实时遥测量
+        		 gScYcData.zzScWjXh = htons(intWjXh);        		
+ 3.
+ 	//set 0 while SCKS
+	gScYcData.sczjs=0;
+	->
+		//set 0 while SCKS
+	gScYcData.sczjs=htonl(0); 
+	
+4.
+	        		 gScYcData.sczjs++;
+->
+	        		 int iTmp = ntohl(gScYcData.sczjs);
+	        		 iTmp++;
+	        		 gScYcData.sczjs = htonl(iTmp);
+	        		 gScYcData.sczjs++;	        		
+
+5.
+             gScYcData.wjZs=num_row;
+->
+             //gScYcData.wjZs=htonl(num_row);	        		 
+	        		 
+todo
+2. add axyc when kssc such as rwid scwjzc
+
+
+20180119
+1.
+gScYcData.wjZs=num_row;
+->
+//gScYcData.wjZs=num_row;
+
+2.include.h
+#include <net/if.h>
+
+3.const.h
+#define IF_NAME "eth0"
+
+4.
+/////////////////////////////////////
+//Device id
+///////////////////////////////////////
+__int8_t gDeviceId;
+
+5.
+/////////////////////////////////////
+//Device id
+///////////////////////////////////////
+extern __int8_t gDeviceId;
+
+6.
+//如果定义，则for all node
+#define _GET_IP_SELF
+
+7.
+int get_local_ip(char * ifname, char * ip)
+{
+    char *temp = NULL;
+    int inet_sock;
+    struct ifreq ifr;
+
+    inet_sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+    memset(ifr.ifr_name, 0, sizeof(ifr.ifr_name));
+    memcpy(ifr.ifr_name, ifname, strlen(ifname));
+
+    if(0 != ioctl(inet_sock, SIOCGIFADDR, &ifr))
+    {
+        perror("ioctl error");
+        return -1;
+    }
+
+    temp = inet_ntoa(((struct sockaddr_in*)&(ifr.ifr_addr))->sin_addr);
+    memcpy(ip, temp, strlen(temp));
+
+    close(inet_sock);
+
+    return 0;
+}
+
+8.
+#ifdef _GET_IP_SELF
+	    char ip[32] = {0};
+	    char charTmp[32];
+
+	    get_local_ip(IF_NAME, ip);
+
+	    if(0 != strcmp(ip, "")){
+	    	msgPrint(LOGFILE, "MSG---%s 's ip is %s\n",IF_NAME, ip);
+	        sprintf(charTmp,"%s",ip);
+	        int i;
+	        for (i=0;i<strlen(charTmp);i++){
+	        	printf(" %d", charTmp[i]);
+	        }
+	        if (charTmp[strlen(charTmp)-1] ==48)
+	        	gDeviceId = 0x1E;
+	        else if (charTmp[strlen(charTmp)-1] ==49)
+	        	gDeviceId = 0x1F;
+	        else if(charTmp[strlen(charTmp)-1] ==50)
+	        	gDeviceId = 0x20;
+	        else if(charTmp[strlen(charTmp)-1] ==51)
+	        	gDeviceId = 0x21;
+	        else{
+	        	errorPrint(LOGFILE, "ERR---Ip address is not match 30, 31, 32 or 33.\n");
+	        	return -3 ;
+	        }
+	        msgPrint(LOGFILE, "MSG---Dvice id is %x\n", gDeviceId);
+
+	    }else
+	    {
+	    	errorPrint(LOGFILE, "ERR---Can not get ip address.\n");
+	    	return -3 ;
+	    }
+#else
+    gDeviceId = DEVICE_ID
+#endif
+
+9.
+	//文件存储节点
+	pFileHead->nodeId = DEVICE_ID;
+	
+20180119
+
+1.
+//20180119
+#define RET_SCWJ_NOT_EXIST_IN_FILESYSTEM //there is no corresponding file in file sysem
+
+2.
+	        	 printf("@@@@@@@fileSize=%d\n",fileSize);
+
+	        	 //如果要数传的文件大小超过(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)就退出，否则数组会溢出
+	        	 if(fileSize > (SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)){
+
+	        		 //要读出的文件长度大于SQL_OUTFILE_MAXSIZE，返回-3
+	        		 //关闭文件
+	        		 in.close();
+	        		 //释放此次查询记录
+	        		 self_mysql_free_result(selfMysqlp,mysql_result);
+	        		 msgPrint(LOGFILE, "MSG-S-FileSize（%lu)>(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)（%d)\n",fileSize,(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH));
+
+	        		 return_ZL_ZXJG(zl_id,ZXJG_SB);
+	            	 //传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
+	            	 if(closeSocket()){
+	            		 gIntSczt = 0; //数传状态置为0
+	            		 //修改数传实时遥测量
+	            		 gScYcData.scLjZt = 0;
+	            		 //数传完成时，插入实时遥测数据表
+	            		 insertSsYcSj();
+	            	 }
+
+	            	 threadReturn(RET_SCWJ_IS_TOO_LARGE);
+	            	 //return -4;
+	        	 }
+
+	        	 //////////////////////////////////////////////
+	        	 //如果是指定的开始数传的文件序号，则移动到指定偏移量处
+	        	 //////////////////////////////////////////////
+
+	        	 int beginIndex;
+	        	 if(scWjXh == intWjXh){
+
+	        		 beginIndex = scPyl;
+	        	 }else
+	        	 {
+	        		 beginIndex = 0;
+	        	 }
+
+
+
+	        	 //填写数传文件长度
+
+	        	 if(fileSize > beginIndex){
+	        		 pScFileHead->scFileLength = htonl(fileSize-beginIndex);
+	        	 }else
+	        	 {
+	            	 //指定的偏移量超出文件长度
+	            	 return_ZL_ZXJG(zl_id,ZXJG_SB);
+	            	 //传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
+	            	 if(closeSocket()){
+	            		 gIntSczt = 0; //数传状态置为0
+	            		 //修改数传实时遥测量
+	            		 gScYcData.scLjZt = 0;
+	            		 //数传完成时，插入实时遥测数据表
+	            		 insertSsYcSj();
+	            	 }
+
+
+	            	 threadReturn(RET_GIVEN_OFFSET_OVERSTEP_LENGTH_OF_FILE);
+	            	 //return -5;
+	        	 }
+
+->
+
+
+	        	 //////////////////////////////////////////////
+	        	 //如果是指定的开始数传的文件序号，则移动到指定偏移量处
+	        	 //////////////////////////////////////////////
+
+	        	 int beginIndex;
+	        	 if(scWjXh == intWjXh){
+
+	        		 beginIndex = scPyl;
+	        	 }else
+	        	 {
+	        		 beginIndex = 0;
+	        	 }
+
+	        	 //debugPrint(LOGFILE, "BUG-S-@@@@@@@fileSize of file NO. %d =%d\n",intWjXh,fileSize);
+
+	        	 //如果要数传的文件大小超过(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)就退出，否则数组会溢出
+	        	 //change to
+	        	 //如果要数传的文件大小超过(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)就send next file，否则数组会溢出
+
+	        	 if(fileSize<=0 or fileSize > (SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH) or fileSize > beginIndex){
+	        		 //关闭文件
+	        		 in.close();
+	        		 msgPrint(LOGFILE, "MSG-S-FileSize（%lu)>(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH)（%d) or <=0  or < given offset.\n",fileSize,(SQL_OUTFILE_MAXSIZE+SQL_OUTFILE_HEAD_LENGTH));
+	        		 continue;
+	        	 }
+
+
+	        	 //填写数传文件长度
+	        	 pScFileHead->scFileLength = htonl(fileSize-beginIndex);
+	            	 
+	            	 
+	            	 
+20180301
+1. change sc frame structure.
+from:
+	//数传机数据报文结构（TCP应用层结构+CCSDS数传帧结构） //数传机数据报文不再加TCP应用层帧格式
+	typedef struct scsj_s{
+		//__uint8_t header[LEN_OF_TCP_SYNC];
+		//__uint32_t length;
+		//__uint8_t reservation[6];
+		__uint32_t sync;
+		__uint16_t versionAndVcduId;
+		__uint8_t vcdu[3];
+		__uint8_t signalling;
+		__uint8_t data[SCSJ_PACKAGE_DATA_SIZE];
+		__uint8_t rs[128];
+	}scsj_t;
+to
+	typedef struct scsj_s{
+		//__uint8_t header[LEN_OF_TCP_SYNC];
+		//__uint32_t length;
+		//__uint8_t reservation[6];
+		__uint32_t sync;
+		__uint16_t versionAndVcduId;
+		__uint8_t vcdu[3];
+		__uint8_t signalling;
+		__uint8_t add_scFrameType;
+		__uint8_t add_scrwId;
+		__uint16_t add_scwjXh;
+		__uint32_t add_scwjPyl;
+		__uint32_t add_add_yl1;
+		__uint32_t add_add_yl2;
+		__uint8_t data[SCSJ_PACKAGE_DATA_SIZE];
+		__uint8_t rs[128];
+	}scsj_t;	            
+	
+2.
+//数传数据帧中，有效载荷段长度
+from 
+	#define SCSJ_PACKAGE_DATA_SIZE 886
+to
+	#define SCSJ_PACKAGE_DATA_SIZE 870	 
+	
+3. 
+from 
+	        	 while ((SCZT_SCING == gScYcData.scZt)&&(index < sendSize)){
+
+	        		 //序号++
+	        		 xh++;
+
+	        		 //转为3个字节存放的序号，填写CCSDS头的序号栏
+		        	 __uint8_t b[3];//b1,b2,b3;
+		        	 setIntTo3Bytes(xh,&b[0],&b[1],&b[2]);
+	        		 gScSjPackage.vcdu[0] = b[0];
+	        		 gScSjPackage.vcdu[1] = b[1];
+	        		 gScSjPackage.vcdu[2] = b[2];
+to
+	        	 //inner frame xh of a file.
+	        	 int nbXh = -1;
+	        	 while ((SCZT_SCING == gScYcData.scZt)&&(index < sendSize)){
+
+	        		 //序号++
+	        		 xh++;
+	        		 nbXh++;
+
+	        		 //转为3个字节存放的序号，填写CCSDS头的序号栏
+		        	 __uint8_t b[3];//b1,b2,b3;
+		        	 setIntTo3Bytes(xh,&b[0],&b[1],&b[2]);
+	        		 gScSjPackage.vcdu[0] = b[0];
+	        		 gScSjPackage.vcdu[1] = b[1];
+	        		 gScSjPackage.vcdu[2] = b[2];
+
+	        		 gScSjPackage.add_scrwId =  intRwID;
+	        		 gScSjPackage.add_scwjXh = htons(intWjXh);
+	        		 gScSjPackage.add_scwjPyl = htonl(beginIndex+nbXh*SCSJ_PACKAGE_DATA_SIZE);
+	        		 if (fileSize-beginIndex-nbXh*SCSJ_PACKAGE_DATA_SIZE <= SCSJ_PACKAGE_DATA_SIZE){
+	        			 gScSjPackage.add_scFrameType = 0x01;
+	        		 }else
+	        		 {
+	        			 gScSjPackage.add_scFrameType = 0x00;
+	        		 }
+	        		 
