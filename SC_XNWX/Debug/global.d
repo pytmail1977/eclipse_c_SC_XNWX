@@ -1,16 +1,18 @@
 global.d: ../global.cpp ../global.h ../include.h ../complier.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql_version.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql_com.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql_time.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/my_list.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/client_plugin.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/plugin_auth_common.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/typelib.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/my_alloc.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/psi/psi_memory.h \
- /home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/psi/psi_base.h \
- ../includecpp.h ../const.h ../debug.h ../commonTool.h ../struct.h
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_version.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_com.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/binary_log_types.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/my_command.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_time.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/my_list.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/client_plugin.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/plugin_auth_common.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/typelib.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/my_alloc.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/psi/psi_memory.h \
+  /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/psi/psi_base.h \
+  ../includecpp.h ../const.h ../debug.h ../commonTool.h ../struct.h
 
 ../global.h:
 
@@ -18,27 +20,31 @@ global.d: ../global.cpp ../global.h ../include.h ../complier.h \
 
 ../complier.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql_version.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_version.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql_com.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_com.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql_time.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/binary_log_types.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/my_list.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/my_command.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/client_plugin.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_time.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/plugin_auth_common.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/my_list.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/typelib.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/client_plugin.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/my_alloc.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/plugin_auth_common.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/psi/psi_memory.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/typelib.h:
 
-/home/pyt64/mysql-connector-c-6.1.5-src/include/mysql/psi/psi_base.h:
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/my_alloc.h:
+
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/psi/psi_memory.h:
+
+/usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql/psi/psi_base.h:
 
 ../includecpp.h:
 

@@ -13,7 +13,7 @@
 //////////////////////
 
 //如果定义，则表示在mac系统上编译，否则在ubuntu系统上编译
-//#define _BUILD_ON_MAC
+#define _BUILD_ON_MAC
 //定义DEBUG，可作为测试的总开关，目前无用
 #define _DEBUG
 
@@ -59,7 +59,14 @@
 //如果定义，则发送struct周期遥测
 #define _USE_SSYC_IN_STRUCT
 
+
+//如果定义则是运行在虚拟卫星上
+#define _RUN_ON_XNWX
+
+#ifndef _RUN_ON_XNWX
 //如果定义，则for all node
 #define _GET_IP_SELF
+#endif
+
 
 #endif /* COMPLIER_H_ */

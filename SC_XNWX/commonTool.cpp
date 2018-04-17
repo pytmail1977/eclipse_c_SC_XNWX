@@ -8,6 +8,15 @@
 
 #include  "commonTool.h"
 
+
+int closeFTP(){
+	return 1;
+}
+
+int connectFTP(){
+	return 1;
+}
+
 /*
  * 功能：用于连接到指定的服务端口
  * 参数：
@@ -80,6 +89,9 @@ int connectSocket(void){
 
 	return 1;
 }
+
+
+
 
 /*
  * 功能：断开到指定服务器端口的连接

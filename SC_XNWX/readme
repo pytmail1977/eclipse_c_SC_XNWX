@@ -1342,3 +1342,9 @@ to
 	        			 gScSjPackage.add_scFrameType = 0x00;
 	        		 }
 	        		 
+2018-04-17
+1.设置一个编译开关_RUN_ON_XNWX，控制是否在虚拟卫星上运行，相应调整const.h和compiler.h中的内容
+2.将SC.cpp中的connectSocket()，改为connectSCJ()，后者根据编译开关_RUN_ON_XNWX，选择调用connectSocket()或connectFTP()
+3.同样的将SC.cpp中的closeSocket()，改为closeSCJ()，后者根据编译开关_RUN_ON_XNWX，选择调用closeSocket()或closeFTP()
+4.在commTool.h中定义closeFTP()和connectFTP()
+

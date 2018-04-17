@@ -57,7 +57,7 @@ int init(void){
 	    	return -3 ;
 	    }
 #else
-    gDeviceId = DEVICE_ID
+    gDeviceId = DEVICE_ID;
 #endif
 
 	////////////////////////////////
@@ -147,8 +147,12 @@ int init(void){
 	///////////////////////////////
 	//网络链接变量初始化
 	///////////////////////////////
+	//如果在虚拟卫星上运行
+#ifndef _RUN_ON_XNWX
 	initNetsocket(&gNetSocketScjKz);
 	initNetsocket(&gNetSocketScjSj);
+	//如果在虚拟卫星上运行
+#endif//#ifdef _RUN_ON_XNWX
 
 	//////////////////////////////
 	//数据库链接变量初始化
@@ -248,8 +252,10 @@ void quit(int gYyYxzt){
 	//更新应用状态表
 	updataYYZT(gYyYxzt);
 
+
 	//断开链接
-	closeSocket();
+	closeSCJ();
+\
 	//修改数传实时遥测量
 	gScYcData.scLjZt = 0;
 
@@ -1360,13 +1366,15 @@ int onZL_SCJ_SCDWSZ(int zl_id,unsigned char* ucharZL_NR){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE, "FUC+++SC.cpp FUNC: onZL_SCJ_SCDWSZ is called.\n");
 	prgPrint(LOGFILE, "PRG---Deal with a ZL SCJ_SCDWSZ\n");
+
+
 	//接收指令
 	return_ZL_ZXJG(zl_id,ZXJG_JS);
 
 
 
 	//链接服务器，如果失败就将指令执行结果记为失败，然后返回-1
-	if (0 >= connectSocket()){
+	if (0 >= connectSCJ()){
 		return_ZL_ZXJG(zl_id,ZXJG_SB);
 		return -1;//-1表示无法链接到数传机服务
 	}
@@ -1376,13 +1384,17 @@ int onZL_SCJ_SCDWSZ(int zl_id,unsigned char* ucharZL_NR){
 
 
 	gScKzPackage.dw = ucharZL_NR[0];
+
+//如果不在虚拟卫星上执行
+#ifndef _RUN_ON_XNWX
 	sendScjDwOrder();
+#endif //ifndef _RUN_ON_XNWX
  	//修改数传实时遥测量
  	gScYcData.dwSz = gScKzPackage.dw;
 
 
 	//关闭到服务器的连接，如果失败就将指令执行结果记为失败，然后返回-2
-	if (0 >= closeSocket()){
+	if (0 >= closeSCJ()){
 		return_ZL_ZXJG(zl_id,ZXJG_SB);
 		return -2;//-2表示无法关闭到数传机服务的链接
 	}
@@ -1395,6 +1407,7 @@ int onZL_SCJ_SCDWSZ(int zl_id,unsigned char* ucharZL_NR){
 	//反馈指令执行结果
 	return_ZL_ZXJG(zl_id,ZXJG_CG);
 	return 1;
+
 }
 /*
  * 功能L：处理数传数据组织指令
@@ -1667,7 +1680,7 @@ void* execSC(void *arg){
 	///////////////////////////////
 #ifdef	_CONNECT_TO_SERVER
 
-	if (0 >= connectSocket()){
+	if (0 >= connectSCJ()){
 
 		return_ZL_ZXJG(zl_id,ZXJG_SB);
 		threadReturn(RET_CANNOT_CONNECT_TO_SCJFW) ;//表示无法链接到指令转发服务
@@ -1736,7 +1749,7 @@ void* execSC(void *arg){
         	 //查询结果为NULL
         	 return_ZL_ZXJG(zl_id,ZXJG_SB);
  	     	//传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
- 	     	if(closeSocket()){
+ 	     	if(closeSCJ()){
  	     		gIntSczt = 0; //数传状态置为0
  	     		//修改数传实时遥测量
  	     		gScYcData.scLjZt = 0;
@@ -1756,7 +1769,7 @@ void* execSC(void *arg){
         	 //没有找到数传文件，返回0
         	 return_ZL_ZXJG(zl_id,ZXJG_CG);
  	     	//传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
- 	     	if(closeSocket()){
+ 	     	if(closeSCJ()){
  	     		gIntSczt = 0; //数传状态置为0
  	     		//修改数传实时遥测量
  	     		gScYcData.scLjZt = 0;
@@ -1960,7 +1973,7 @@ void* execSC(void *arg){
 	        	         return_ZL_ZXJG(zl_id,ZXJG_SB);
 
 	        	     	//传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
-	        	     	if(closeSocket()){
+	        	     	if(closeSCJ()){
 	        	     		gIntSczt = 0; //数传状态置为0
 	        	     		//修改数传实时遥测量
 	        	     		gScYcData.scLjZt = 0;
@@ -2018,7 +2031,7 @@ void* execSC(void *arg){
         errorPrint(LOGFILE,  "ERR-S-Select from %s error %d: %s\n",table_name_SCJ_SCWJ, self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
         return_ZL_ZXJG(zl_id,ZXJG_SB);
         //传输中止时，需要断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
-        if(closeSocket()){
+        if(closeSCJ()){
       		 gIntSczt = 0; //数传状态置为0
       		 //修改数传实时遥测量
       		 gScYcData.scLjZt = 0;
@@ -2035,7 +2048,7 @@ void* execSC(void *arg){
 	return_ZL_ZXJG(zl_id,ZXJG_CG);
 
 	//传输完成后自动断开链接，否则接着接到下一个数传开始指令会报错（链接到控制口的链接尚未释放）
-	if(closeSocket()){
+	if(closeSCJ()){
 		gIntSczt = 0; //数传状态置为0
 		//修改数传实时遥测量
 		gScYcData.scLjZt = 0;
@@ -2060,6 +2073,7 @@ int onZL_SCJ_SCTZ(int zl_id,unsigned char* ucharZL_NR){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE, "FUC+++SC.cpp FUNC: onZL_SCJ_SCTZ is called.\n");
 
+
 	//接收指令
 	return_ZL_ZXJG(zl_id,ZXJG_JS);
 
@@ -2067,7 +2081,7 @@ int onZL_SCJ_SCTZ(int zl_id,unsigned char* ucharZL_NR){
 	//判断当前状态，如果在进行数传，则要终止它
 
 	//断开链接
-	if(closeSocket()){
+	if(closeSCJ()){
 		gIntSczt = SCZT_IDLE; //0:无操作，1:正在进行数传准备，2:数传任务数据准备完毕，3:当前正在进行数传
 		//修改数传实时遥测量
 		gScYcData.scZt = gIntSczt;
@@ -2086,6 +2100,7 @@ int onZL_SCJ_SCTZ(int zl_id,unsigned char* ucharZL_NR){
 		return_ZL_ZXJG(zl_id,ZXJG_SB);
 		return -1;
 	}
+
 
 }
 
@@ -2838,3 +2853,25 @@ void insertSsYcSj(void){
 	insertSsYcSjInString();
 #endif
 }
+
+int closeSCJ(void){
+	int ret;
+#ifdef _RUN_ON_XNWX
+	ret = closeFTP();
+#else
+	ret = closeSocket();
+#endif
+	return ret;
+}
+
+int connectSCJ(void){
+	int ret;
+#ifdef _RUN_ON_XNWX
+	ret = connectFTP();
+#else
+	ret = connectSocket();
+#endif
+	return ret;
+}
+
+

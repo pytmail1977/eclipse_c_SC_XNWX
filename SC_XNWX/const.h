@@ -13,7 +13,13 @@
 //////////////////////
 //有关自身节点的参数
 //////////////////////
-#define DEVICE_ID  0x21 //设备地址，30-33为4个云计算节点
+#ifdef _RUN_ON_XNWX
+#define DEVICE_ID  0x1E //如果在虚拟卫星上运行设备地址都为0x1E
+#else
+#define DEVICE_ID  0x20 //设备地址，30-33为4个云计算节点
+#endif
+
+
 
 //////////////////////
 //集成单元地址、服务端口
@@ -37,7 +43,6 @@
 #define SCJ_KZ_SERVER_PORT 8005
 //数传机数据服务端口
 #define SCJ_SJ_SERVER_PORT 8006
-
 
 //////////////////////
 //日志文件
@@ -307,4 +312,18 @@
 
 
 #define IF_NAME "eth0"
+
+//如果在虚拟卫星上运行
+#ifdef _RUN_ON_XNWX
+
+//中心FTP地址
+#define CENTER_FTP_HOST "140.143.228.174"
+//中心FTP路径
+#define CENTER_FTP_PATH "satellite"
+//中心FTP用户
+#define CENTER_FTP_USER "weixing"
+//中心FTP口令
+#define CENTER_FTP_PASS "wx_qlzx_666"
+
+#endif
 #endif /* CONST_H_ */
