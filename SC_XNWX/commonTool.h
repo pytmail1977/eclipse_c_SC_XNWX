@@ -33,6 +33,11 @@ int connectDB(mysql_t * Mysql);
 //关闭到数据库的链接
 void closeDB(mysql_t * Mysql);
 
+//连接数传机
+int connectSCJ(void);
+//断开数传机
+int closeSCJ(void);
+
 //如果在虚拟卫星运行，服务链接和断开操作，转换为FTP断开和链接操作
 int closeFTP(void);
 int connectFTP(void);

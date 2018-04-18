@@ -8,12 +8,68 @@
 
 #include  "commonTool.h"
 
+/*
+ * 连接数传机服务，如果在虚拟卫星上运行就连接FTP
+ */
+int closeSCJ(void){
+	int ret;
+#ifdef _RUN_ON_XNWX
+	ret = closeFTP();
+#else
+	ret = closeSocket();
+#endif
+	return ret;
+}
 
+/*
+ * 断开数传机服务，如果在虚拟卫星上运行就断开FTP
+ */
+int connectSCJ(void){
+	int ret;
+#ifdef _RUN_ON_XNWX
+	ret = connectFTP();
+#else
+	ret = connectSocket();
+#endif
+	return ret;
+}
+
+/*
+ * 断开FTP
+ * 返回值：
+ * @1：成功；
+ * @-1：失败；
+ */
 int closeFTP(){
+	GET_FUNCSEQ
+	fucPrint(LOGFILE, "FUC++++++commonTool.cpp FUNC: closeFTP is called.\n");
+	fprintf(gFtp,"bye\n");
+	int ret = pclose(gFtp);
+	if(-1 == ret){
+		errorPrint(LOGFILE,  "ERR-T-when pclose ftp.\n");
+		return -1;
+	}
+	gFtp = NULL;
 	return 1;
 }
 
+/*
+ * 连接FTP
+ * 返回值：
+ * @1：成功；
+ * @-1：失败；
+ */
 int connectFTP(){
+	GET_FUNCSEQ
+	fucPrint(LOGFILE, "FUC++++++commonTool.cpp FUNC: connectFTP is called.\n");
+
+	if ((gFtp=popen("ftp -n","w"))==NULL) {
+		errorPrint(LOGFILE,  "ERR-T-when popen ftp.\n");
+		return -1;
+	}
+	fprintf(gFtp,"open %s\n",CENTER_FTP_HOST);
+	fprintf(gFtp,"user %s %s\n",CENTER_FTP_USER,CENTER_FTP_PASS);
+	fprintf(gFtp,"cd DT\n");
 	return 1;
 }
 

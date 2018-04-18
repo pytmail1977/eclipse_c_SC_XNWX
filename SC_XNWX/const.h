@@ -315,15 +315,40 @@
 
 //如果在虚拟卫星上运行
 #ifdef _RUN_ON_XNWX
+//定义虚拟卫星的卫星类别为1
+#define  _WXLB_XNWX 1
+//定义桌面卫星的卫星类别为2
+#define  _WXLB_ZMWX 2
+//定义虚拟卫星的卫星类别为1
+
+
+
+//以下替代配置文件
+///////////////////////////////
+
 
 //中心FTP地址
 #define CENTER_FTP_HOST "140.143.228.174"
 //中心FTP路径
-#define CENTER_FTP_PATH "satellite"
+#define CENTER_FTP_PORT "21"
 //中心FTP用户
 #define CENTER_FTP_USER "weixing"
 //中心FTP口令
 #define CENTER_FTP_PASS "wx_qlzx_666"
 
-#endif
+
+
+//中心数据库地址
+#define CENTER_DB_HOST "localhost"
+//中心数据库名称
+#define CENTER_DB_NAME "satellite"
+//中心数据库用户
+#define CENTER_DB_USER "root"
+//中心数据库口令
+#define CENTER_DB_PASS "pyt999"
+//虚拟类别
+#define WX_LB _WXLB_XNWX
+//虚拟卫星ID
+#define WX_ID 9
+#endif//ifdef _RUN_ON_XNWX
 #endif /* CONST_H_ */

@@ -891,6 +891,22 @@ int dealWithAnUnreadZl(void){
 	}
 
 	string tablename = table_name_YK_ZL;
+
+	//如果运行在虚拟卫星上，因为需要将put到ftp的数传文件路径写入中央数据库，所以读取指令的时候需要多读一个字段yh_bs
+#ifdef _RUN_ON_XNWX
+	string sqlSelectZL = "select ZL_ID,YY_ID,ZL_LX,ZL_BH,ZL_NR,yh_bs from "+
+			tablename +
+			" where (YY_ID = "+
+			int2String(YYID_SCFW)+
+			" or YY_ID = "+
+			int2String(YYID_GBDZ)+
+			//" or YY_ID = "+
+			//int2String(YYID_JKGL)+
+			") and ZL_ZXJG = " +
+			int2String(ZXJG_WD)+
+			" order by ZL_ID"
+			" ;";
+#else
 	string sqlSelectZL = "select ZL_ID,YY_ID,ZL_LX,ZL_BH,ZL_NR from "+
 			tablename +
 			" where (YY_ID = "+
@@ -903,7 +919,7 @@ int dealWithAnUnreadZl(void){
 			int2String(ZXJG_WD)+
 			" order by ZL_ID"
 			" ;";
-
+#endif
 	sqlPrint(LOGFILE, "SQL---Select from %s: %s \n",table_name_YK_ZL,sqlSelectZL.c_str());
 
 	int ret = self_mysql_query(selfMysqlp, sqlSelectZL.c_str());
@@ -958,6 +974,11 @@ int dealWithAnUnreadZl(void){
          if (mysql_row[3] != NULL)
         	 intZL_BH = atoi(mysql_row[3]);
 
+         //如果运行在虚拟卫星上，需要用读出的yh_bs字段更新全局变量gUserId
+#ifdef _RUN_ON_XNWX
+         if (mysql_row[5] != NULL)
+        	 gUserId = atoi(mysql_row[5]);
+#endif
 
          if (mysql_row[4] != NULL){
         	 strZL_NR = mysql_row[4];
@@ -1634,6 +1655,7 @@ void threadReturn(int arg){
  * @-4:要读出的文件长度大于SQL_OUTFILE_MAXSIZE;
  * @-5:指定的偏移量超出文件长度
  * @-6:发送数传帧失败，没有成功发送整帧
+ * @-7:在虚拟卫星模式下，连接中央数据库写ftp上传文件的路径信息出错
  * @0：没有找到数传文件；
  * @1：成功；
  */
@@ -1808,6 +1830,118 @@ void* execSC(void *arg){
 
 	        	// tmpPrint(LOGFILE, "TMP-S-intRwID: %d, intWjXh: %d, strWjPath: %s \n",intRwID,intWjXh,strWjPath.c_str());
 
+
+
+	        	 //////////////////////////////////////////////
+	        	 //如果是在虚拟卫星上运行，则直接使用ftp传输
+	        	 //////////////////////////////////////////////
+#ifdef _RUN_ON_XNWX
+
+	        	 int pos = strWjPath.find_last_of('/');
+	        	 string strFile(strWjPath.substr(pos + 1) );
+	        	 const char* fileName = strFile.c_str();
+
+	        	 time_t timep;
+	        	 time(&timep); //获取time_t类型的当前时间
+	        	 string strDestPath = "DT/" +
+	        	 int2String(WX_ID) +
+	        	 "_" +
+	        	 int2String(gUserId)+
+	        	 "_" +
+	        	 int2String(DEVICE_ID)+
+	        	 "_" +
+	        	 int2String(timep)+
+	        	 "_" +
+	        	 fileName;
+
+	        	 //上传
+	        	 if(NULL != gFtp){
+	        		 fprintf(gFtp,"put %s %s\n ",strWjPath.c_str(),strDestPath.c_str());
+
+	        		 ////////////////////////////////
+	        		 //将路径信息写入中央数据库
+	        		 /////////////////////////////////
+
+	        		 //初始化中央数据库连接
+	        		 MYSQL    mysqlCenterDb;
+	        		 if (NULL == mysql_init(&mysqlCenterDb)) {    //分配和初始化MYSQL对象
+	        		 	       errorPrint(LOGFILE,"Center db mysql_init() error: %s\n", mysql_error(&mysqlCenterDb));
+	        		 	       return NULL;
+	        		 }
+
+	        		 bool my_true= true;
+	        		 mysql_options(&mysqlCenterDb,MYSQL_OPT_RECONNECT,&my_true);
+
+	        		 //尝试与运行在主机上的MySQL数据库引擎建立连接
+	        		 if (NULL == mysql_real_connect(&mysqlCenterDb,
+	        				CENTER_DB_HOST,
+      		 	   			CENTER_DB_USER,
+      		 	   			CENTER_DB_PASS,
+      		 	   			CENTER_DB_NAME,
+      		 	               0,
+      		 	               NULL,
+      		 	               0)) {
+	        			 errorPrint(LOGFILE,"Center db mysql_real_connect(): %s\n", mysql_error(&mysqlCenterDb));
+	        			 return NULL;
+	        		 }
+
+	        		 //设置为自动commit
+	        		 mysql_autocommit(&mysqlCenterDb,true);
+
+	        		 //向中央数据库插入数传文件路径
+
+	                 string strInsert_FfP_SCWJLJ = "insert into " +
+	               			string(table_name_YK_ZL) +
+	               			"(yh_bs,wx_lb,wx_bs,jd_lb,js_js,scwj_mc) values(" +
+	               			int2String(gUserId) +
+	               			","+
+	               			int2String(WX_LB) +
+	               			","+
+	               			int2String(WX_ID) +
+	               			","+
+	               			int2String(DEVICE_ID) +
+	               			","+
+	               			"'"+getDateString()+"'" +
+	               			","+
+	               			strDestPath.c_str()+
+	               			")";
+
+
+	                sqlPrint(LOGFILE,"SQL---Insert center db table %s: %s\n","SQL---插入%s表SQL: %s\n","qlzx_scsj", strInsert_FfP_SCWJLJ.c_str());
+
+                	//指令入库
+                	int ret;
+                	//尝试三次操作数据库，如果都失败，就认了。
+                	int count;
+                	for(count=0;count<3;count++){
+                		ret = mysql_query(&mysqlCenterDb, strInsert_FfP_SCWJLJ.c_str());
+                        if (!ret) {
+                        	break;
+                        }else{
+                        	sleep(1);
+                        }
+                	}
+
+
+
+                   if (!ret) {
+                        prgPrint(LOGFILE,"PRG---Insert into center db table %s, affact %d rows.\n","过程---插入中央数据库%s表 ，影响%d行.\n","qlzx_scsj",
+                                     mysql_affected_rows(&mysqlCenterDb));
+                   }else{
+                       errorPrint(LOGFILE, "ERR---Insert into center DB %s error %d: %s\n", "错误---插入中央库%s表失败（错误编号：%d，%s）\n", "qlzx_scsj", mysql_errno(&mysqlCenterDb), mysql_error(&mysqlCenterDb));
+
+                        return NULL;
+                   }
+
+
+	        		 //关闭中央数据库连接
+	        		mysql_close(&mysqlCenterDb);
+	        	 }//if(NULL != gFtp){
+
+
+	        	 //发送完成后进入下一个文件
+	        	 continue;
+#endif
 	        	 //读取数传文件
 	        	 //////////////////////////////////////////////
 	        	 //开一个文件缓冲，用于放入头结构和后续读入文件内容
@@ -1838,7 +1972,10 @@ void* execSC(void *arg){
 	        	 //////////////////////////////////////////////
 	        	 //读出文件写入缓冲
 	        	 //////////////////////////////////////////////
-	        	 const char* fileName = strWjPath.c_str();
+#ifndef _RUN_ON_XNWX
+	        	 const char* fileName
+#endif
+	        	 fileName = strWjPath.c_str();
 	        	 fstream in(fileName, ios::in|ios::binary|ios::ate);
 	        	 long fileSize = in.tellg();
 
@@ -2854,24 +2991,5 @@ void insertSsYcSj(void){
 #endif
 }
 
-int closeSCJ(void){
-	int ret;
-#ifdef _RUN_ON_XNWX
-	ret = closeFTP();
-#else
-	ret = closeSocket();
-#endif
-	return ret;
-}
-
-int connectSCJ(void){
-	int ret;
-#ifdef _RUN_ON_XNWX
-	ret = connectFTP();
-#else
-	ret = connectSocket();
-#endif
-	return ret;
-}
 
 

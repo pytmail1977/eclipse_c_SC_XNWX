@@ -31,7 +31,7 @@
 
 
 //如果定义，则根据需要输出各种消息、错误和debug信息，否则一概不输出
-//#define _DEBUGPRINT
+#define _DEBUGPRINT
 
 //如果定义，在程序启动时会将所有未读指令置为忽略
 //#define _IGNORUNREADZLWHENRESTART

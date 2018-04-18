@@ -111,5 +111,16 @@ extern total_t gTotal;
 //Device id
 ///////////////////////////////////////
 extern __int8_t gDeviceId;
+
+/////////////////////////////////////
+//用于在虚拟卫星运行
+///////////////////////////////////////
+//代替数传机的FTP
+extern FILE *gFtp;
+//中央数据库
+//extern mysql_t gMysql_centerDB;
+//虚拟卫星的用户ID
+extern int gUserId;
+
 #endif /* GLOBAL_H_ */
 
