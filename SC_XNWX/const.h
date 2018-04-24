@@ -247,9 +247,12 @@
 #define SELECTINTO_PRE " INTO OUTFILE \""
 #define SELECTINTO_POST "\" FIELDS TERMINATED BY \',\' OPTIONALLY ENCLOSED BY \'\"\' LINES TERMINATED BY \'\\n\';"
 //select into的临时文件路径+文件名前缀
-//#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
-#define SJZZ_OUTFILE_NAME_BASE "/home/sqlexport/sc_"
 
+#ifdef _BUILD_ON_MAC
+#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
+#else
+#define SJZZ_OUTFILE_NAME_BASE "/home/sqlexport/sc_"
+#endif
 ////////////////////////
 //定义报文数据输出格式
 ////////////////////////
@@ -339,16 +342,18 @@
 
 
 //中心数据库地址
-#define CENTER_DB_HOST "localhost"
+#define CENTER_DB_HOST "140.143.228.174"
 //中心数据库名称
 #define CENTER_DB_NAME "satellite"
 //中心数据库用户
-#define CENTER_DB_USER "root"
+#define CENTER_DB_USER "satellite"
 //中心数据库口令
-#define CENTER_DB_PASS "pyt999"
+#define CENTER_DB_PASS "satellite"
 //虚拟类别
 #define WX_LB _WXLB_XNWX
 //虚拟卫星ID
-#define WX_ID 9
+#define WX_ID 3
 #endif//ifdef _RUN_ON_XNWX
+
+
 #endif /* CONST_H_ */

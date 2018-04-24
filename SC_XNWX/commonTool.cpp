@@ -69,7 +69,7 @@ int connectFTP(){
 	}
 	fprintf(gFtp,"open %s\n",CENTER_FTP_HOST);
 	fprintf(gFtp,"user %s %s\n",CENTER_FTP_USER,CENTER_FTP_PASS);
-	fprintf(gFtp,"cd DT\n");
+	//fprintf(gFtp,"cd DT\n");
 	return 1;
 }
 

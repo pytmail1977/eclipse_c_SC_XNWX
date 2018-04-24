@@ -1843,7 +1843,7 @@ void* execSC(void *arg){
 
 	        	 time_t timep;
 	        	 time(&timep); //获取time_t类型的当前时间
-	        	 string strDestPath = "DT/" +
+	        	 string strDestPath = "Uploads/DT/" +
 	        	 int2String(WX_ID) +
 	        	 "_" +
 	        	 int2String(gUserId)+
@@ -1856,18 +1856,22 @@ void* execSC(void *arg){
 
 	        	 //上传
 	        	 if(NULL != gFtp){
+	        		 printf("gFtp is %d\n",gFtp);
 	        		 fprintf(gFtp,"put %s %s\n ",strWjPath.c_str(),strDestPath.c_str());
+	        		 msgPrint(LOGFILE, "MSG-S- put %s to FTP(Path:%s)\n",strWjPath.c_str(),strDestPath.c_str());
 
 	        		 ////////////////////////////////
 	        		 //将路径信息写入中央数据库
 	        		 /////////////////////////////////
 
+	        		 R2H("a")
 	        		 //初始化中央数据库连接
 	        		 MYSQL    mysqlCenterDb;
 	        		 if (NULL == mysql_init(&mysqlCenterDb)) {    //分配和初始化MYSQL对象
 	        		 	       errorPrint(LOGFILE,"Center db mysql_init() error: %s\n", mysql_error(&mysqlCenterDb));
 	        		 	       return NULL;
 	        		 }
+	        		 R2H("b")
 
 	        		 bool my_true= true;
 	        		 mysql_options(&mysqlCenterDb,MYSQL_OPT_RECONNECT,&my_true);
@@ -1885,14 +1889,14 @@ void* execSC(void *arg){
 	        			 return NULL;
 	        		 }
 
+	        		 R2H("c")
+
 	        		 //设置为自动commit
 	        		 mysql_autocommit(&mysqlCenterDb,true);
 
 	        		 //向中央数据库插入数传文件路径
 
-	                 string strInsert_FfP_SCWJLJ = "insert into " +
-	               			string(table_name_YK_ZL) +
-	               			"(yh_bs,wx_lb,wx_bs,jd_lb,js_js,scwj_mc) values(" +
+	                 string strInsert_FfP_SCWJLJ = "insert into qlzx_scsj(yh_bs,wx_lb,wx_bs,jd_lb,js_js,scwj_mc) values(" +
 	               			int2String(gUserId) +
 	               			","+
 	               			int2String(WX_LB) +
@@ -1903,12 +1907,12 @@ void* execSC(void *arg){
 	               			","+
 	               			"'"+getDateString()+"'" +
 	               			","+
-	               			strDestPath.c_str()+
+	               			"'"+strDestPath.c_str()+"'"+
 	               			")";
 
-
-	                sqlPrint(LOGFILE,"SQL---Insert center db table %s: %s\n","SQL---插入%s表SQL: %s\n","qlzx_scsj", strInsert_FfP_SCWJLJ.c_str());
-
+	        		 R2H("d")
+	                sqlPrint(LOGFILE,"SQL---Insert center db table qlzx_scsj: %s\n", strInsert_FfP_SCWJLJ.c_str());
+	        		 R2H("f")
                 	//指令入库
                 	int ret;
                 	//尝试三次操作数据库，如果都失败，就认了。
@@ -1925,12 +1929,13 @@ void* execSC(void *arg){
 
 
                    if (!ret) {
-                        prgPrint(LOGFILE,"PRG---Insert into center db table %s, affact %d rows.\n","过程---插入中央数据库%s表 ，影响%d行.\n","qlzx_scsj",
+                        prgPrint(LOGFILE,"PRG---Insert into center db table %s, affact %d rows.\n","qlzx_scsj",
                                      mysql_affected_rows(&mysqlCenterDb));
                    }else{
-                       errorPrint(LOGFILE, "ERR---Insert into center DB %s error %d: %s\n", "错误---插入中央库%s表失败（错误编号：%d，%s）\n", "qlzx_scsj", mysql_errno(&mysqlCenterDb), mysql_error(&mysqlCenterDb));
-
-                        return NULL;
+                       errorPrint(LOGFILE, "ERR---Insert into center DB %s error %d: %s\n", mysql_errno(&mysqlCenterDb), mysql_error(&mysqlCenterDb));
+                       //关闭中央数据库连接
+                       mysql_close(&mysqlCenterDb);
+                       return NULL;
                    }
 
 
