@@ -717,6 +717,11 @@ int main(void) {
 		quit(RET_ERR_CONNECT_DB);
 		return RET_ERR_CONNECT_SERVER;//表示连库失败
 	}
+	else if (-3 == ret){
+		errorPrint(LOGFILE,  "ERR---Can't get self ip:%s\n", strerror(ret));
+		quit(RET_ERR_GET_SELF_IP);
+		return RET_ERR_GET_SELF_IP; //表示链接服务失败
+	}
 	/*
 	else if (-2 == ret){
 		errorPrint(LOGFILE,  "ERR---Can't connect ZL Server:%s\n", strerror(ret));

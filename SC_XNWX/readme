@@ -1348,3 +1348,23 @@ to
 3.同样的将SC.cpp中的closeSocket()，改为closeSCJ()，后者根据编译开关_RUN_ON_XNWX，选择调用closeSocket()或closeFTP()
 4.在commTool.h中定义closeFTP()和connectFTP()
 
+2018-05-28
+1.增加定义#define RET_ERR_GET_SELF_IP -6 //-6表示取得本机ip失败
+2.修改main()
+	else if (-3 == ret){
+		errorPrint(LOGFILE,  "ERR---Can't get self ip:%s\n", strerror(ret));
+		quit(RET_ERR_GET_SELF_IP);
+		return RET_ERR_GET_SELF_IP; //表示链接服务失败
+	}
+3、修改const.h
+		#ifdef _BUILD_ON_MAC
+		#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
+		#else
+		#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
+		#endif
+	改为
+		#ifdef _BUILD_ON_MAC
+		#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
+		#else
+		#define SJZZ_OUTFILE_NAME_BASE "home/sqlexport/sc_"
+		#endif	

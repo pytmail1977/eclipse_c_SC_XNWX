@@ -183,7 +183,7 @@
 #define RET_ERR_RIGIST_SIGNAL_LISENER -3 //-3表示注册信号监听程序失败
 #define RET_ERR_CREATE_SELF_USED_TABLES -4 // -4表示创建服务自用库表失败
 #define RET_ERR_START_BASE_TIMER -5 //-5表示启动基础定时器失败
-
+#define RET_ERR_GET_SELF_IP -6 //-6表示取得本机ip失败
 
 
 //////////////////////
@@ -251,7 +251,7 @@
 #ifdef _BUILD_ON_MAC
 #define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
 #else
-#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
+#define SJZZ_OUTFILE_NAME_BASE "/home/sqlexport/sc_"
 #endif
 ////////////////////////
 //定义报文数据输出格式
