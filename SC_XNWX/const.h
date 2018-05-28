@@ -251,7 +251,7 @@
 #ifdef _BUILD_ON_MAC
 #define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
 #else
-#define SJZZ_OUTFILE_NAME_BASE "/home/sqlexport/sc_"
+#define SJZZ_OUTFILE_NAME_BASE "/sqlexport/sc_"
 #endif
 ////////////////////////
 //定义报文数据输出格式

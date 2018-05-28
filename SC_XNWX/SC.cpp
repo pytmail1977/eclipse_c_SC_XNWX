@@ -1978,7 +1978,7 @@ void* execSC(void *arg){
 	        	 //读出文件写入缓冲
 	        	 //////////////////////////////////////////////
 #ifndef _RUN_ON_XNWX
-	        	 const char* fileName
+	        	 const char* fileName;
 #endif
 	        	 fileName = strWjPath.c_str();
 	        	 fstream in(fileName, ios::in|ios::binary|ios::ate);

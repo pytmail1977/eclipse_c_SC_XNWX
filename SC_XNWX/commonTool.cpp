@@ -53,6 +53,8 @@ int closeFTP(){
 	return 1;
 }
 
+#ifdef _RUN_ON_XNWX
+
 /*
  * 连接FTP
  * 返回值：
@@ -72,7 +74,7 @@ int connectFTP(){
 	//fprintf(gFtp,"cd DT\n");
 	return 1;
 }
-
+#endif //#ifdef _RUN_ON_XNWX
 /*
  * 功能：用于连接到指定的服务端口
  * 参数：
