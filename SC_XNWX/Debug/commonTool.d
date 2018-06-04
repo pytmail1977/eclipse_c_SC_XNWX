@@ -1,4 +1,4 @@
-commonTool.d: ../commonTool.cpp ../commonTool.h ../include.h \
+commonTool.o: ../commonTool.cpp ../commonTool.h ../include.h \
   ../complier.h /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_version.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_com.h \

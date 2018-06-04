@@ -59,13 +59,12 @@ void printThread(int thread);
 //打印当前时间
 void printTime();
 //在正式输出前，打印时间和线程信息
-void prePrint(funcSeq_t funcSeq);
+void prePrint();
 
 ///////////////////////
 //mutex相关函数
 ///////////////////////
-//获取一个随机数作为当次函数调用的标示
-funcSeq_t getRandFuncSeq();
+
 //void wormhole_mutex_init(worm_mutex_t *pWormMutex,void* pointer); //在mac下编译有问题，因此去掉最后一个参数，在初始化时使用NULL代替
 void wormhole_mutex_init(worm_mutex_t *pWormMutex);
 void wormhole_mutex_destroy(worm_mutex_t *pWormMutex);

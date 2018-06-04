@@ -26,9 +26,9 @@
 //Debug输出函数使用的辅助信息打印函数
 //////////////////////
 //定义取函数实例序号的函数调用为宏
-#define GET_FUNCSEQ funcSeq_t funcSeq = getRandFuncSeq();
+#define GET_FUNCSEQ //funcSeq_t funcSeq = getRandFuncSeq();
 //定义时间、线程信息输出
-#define infoPrint prePrint(funcSeq);
+#define infoPrint prePrint();
 
 
 ///////////////////////

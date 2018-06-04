@@ -313,8 +313,15 @@
 #define SCZT_PREPARED 2//2:数传任务数据准备完毕
 #define SCZT_SCING 3//3:当前正在进行数传
 
-
+#ifdef _BUILD_ON_MAC
+#define IF_NAME "en0"
+#else
+#ifdef _RUN_ON_LENOVO
+#define IF_NAME "eth4"
+#else
 #define IF_NAME "eth0"
+#endif //ifdef _RUN_ON_LENOVO
+#endif //ifdef _BUILD_ON_MAC
 
 //如果在虚拟卫星上运行
 #ifdef _RUN_ON_XNWX

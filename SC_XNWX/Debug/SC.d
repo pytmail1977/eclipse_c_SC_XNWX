@@ -1,4 +1,4 @@
-SC.d: ../SC.cpp ../SC.h ../include.h ../complier.h \
+SC.o: ../SC.cpp ../SC.h ../include.h ../complier.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_version.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_com.h \

@@ -1,3 +1,4 @@
+http://gitlab.getpartner.ltd:89/pytmail/eclipse_c_SC_XNWX.git
 	
 //应用数据清理
 AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E 01 02 07 00 00
@@ -1368,3 +1369,46 @@ to
 		#else
 		#define SJZZ_OUTFILE_NAME_BASE "home/sqlexport/sc_"
 		#endif	
+2018-05-30
+1、增设一个编译开关，用于在lenovo上调试运行时将网络接口名定义为eth4
+		//如果定义，则表示在lenovo系统上调试运行，否则在目标平台上执行
+		//#define _RUN_ON_LENOVO
+		
+2018-6-4
+
+1、修改prePrint（）函数，不再使用参数funcSeq_t funcSeq
+2、修改宏定义infoPrint使用不带参数funcSeq的prePrint
+	#define infoPrint prePrint(funcSeq);为#define infoPrint prePrint();
+3、修改宏定义GET_FUNCSEQ，不再在函数内引入变量funcSeq_t funcSeq
+4、取消函数funcSeq_t getRandFuncSeq()的定义
+
+
+
+
+5、修改以下三个函数定义，取消参数funcSeq_t funcSeq
+	改
+		void wormhole_mutex_lock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
+		void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
+		int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
+	为
+6、修改wormhole_mutex_lock（），锁住的时候不再记录是被哪个函数锁住
+7、修改wormhole_mutex_unlock（），解锁的时候不再判断是不是当前函数实例锁住了相应对象，只要线程是当前线程就可以解锁
+8、修改wormhole_mutex_trylock（），锁住的时候不再记录是被哪个函数锁住
+9、将所有
+		worm_mutex_lock(&pMYsql->mutex,funcSeq);
+		worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+		worm_mutex_trylock(&pMYsql->mutex,funcSeq);
+	改为
+		worm_mutex_lock(&pMYsql->mutex);//2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+		worm_mutex_unlock(&pMYsql->mutex);//2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+		worm_mutex_trylock(&pMYsql->mutex);//2018-6-3 不再使用funcSeq //worm_mutex_trylock(&pMYsql->mutex,funcSeq);
+10、将所有		
+		worm_mutex_lock(&buffer->mutex,funcSeq);
+		worm_mutex_unlock(&buffer->mutex,funcSeq);
+		worm_mutex_trylock(&buffer->mutex,funcSeq);
+	改为
+		worm_mutex_lock(&buffer->mutex);//2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
+		worm_mutex_unlock(&buffer->mutex);//2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
+		worm_mutex_trylock(&buffer->mutex);//2018-6-3 不再使用funcSeq //worm_mutex_trylock(&buffer->mutex,funcSeq);
+		
+worm_mutex_unlock(&buffer->mutex); //2018-6-3不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);		

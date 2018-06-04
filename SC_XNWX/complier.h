@@ -14,6 +14,10 @@
 
 //如果定义，则表示在mac系统上编译，否则在ubuntu系统上编译
 #define _BUILD_ON_MAC
+
+//如果定义，则表示在lenovo系统上调试运行，否则在目标平台上执行
+//#define _RUN_ON_LENOVO
+
 //定义DEBUG，可作为测试的总开关，目前无用
 #define _DEBUG
 

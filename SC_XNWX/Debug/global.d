@@ -1,4 +1,4 @@
-global.d: ../global.cpp ../global.h ../include.h ../complier.h \
+global.o: ../global.cpp ../global.h ../include.h ../complier.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_version.h \
   /usr/local/Cellar/mysql/5.7.18_1/include/mysql/mysql_com.h \

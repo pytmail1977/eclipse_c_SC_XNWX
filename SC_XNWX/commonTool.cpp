@@ -458,17 +458,15 @@ MYSQL_ROW	STDCALL self_mysql_fetch_row(mysql_t *pMYsql,MYSQL_RES *result){
  * 返回值：
  * 无
  */
-void prePrint(funcSeq_t funcSeq){
+void prePrint(){
 
 	time_t nowtime;
 	struct tm * tm;
 	time(&nowtime);
 	tm = localtime(&nowtime);
-#ifdef _PRE_PRINT_THREAD_AND_FUNCSEQ
-	printf("(%4d-%02d-%02d, %02d:%02d:%02d) [T-%lu][F-%lu] ",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec,(unsigned long)(pthread_self()),(unsigned long)(funcSeq));
-#else
+
 	printf("(%4d-%02d-%02d, %02d:%02d:%02d) ",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec);
-#endif
+
 }
 
 
@@ -576,6 +574,7 @@ void copyUCharArray(const __uint8_t *src, __uint8_t *dst, int count)
  * 返回值：
  * 随机数；
  */
+/*
 funcSeq_t getRandFuncSeq(){
 
 	//此函数不能加函数调用输出，因为那个功能需要调用这个函数
@@ -583,7 +582,7 @@ funcSeq_t getRandFuncSeq(){
 	return(funcSeq);
 }
 
-
+*/
 
 
 /*
